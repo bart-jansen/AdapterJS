@@ -346,21 +346,6 @@ AdapterJS.renderNotificationBar = function (text, buttonText, buttonLink, openNe
       try {
         event.cancelBubble = true;
       } catch(error) { }
-
-<<<<<<< HEAD
-        var pluginInstallInterval = setInterval(function(){
-            if(! isIE) {
-              navigator.plugins.refresh(false);
-            }
-            AdapterJS.WebRTCPlugin.isPluginInstalled(
-              AdapterJS.WebRTCPlugin.pluginInfo.prefix,
-              AdapterJS.WebRTCPlugin.pluginInfo.plugName,
-              AdapterJS.WebRTCPlugin.defineWebRTCInterface,
-              function() { //Does nothing because not used here
-              });
-          } , 500);
-    });
-=======
       var pluginInstallInterval = setInterval(function(){
         if(! isIE) {
           navigator.plugins.refresh(false);
@@ -377,7 +362,6 @@ AdapterJS.renderNotificationBar = function (text, buttonText, buttonLink, openNe
           });
       } , 500);
     });
->>>>>>> master
 
     // On click on Cancel
     AdapterJS.addEvent(c.document.getElementById('cancel'), 'click', function(e) {
