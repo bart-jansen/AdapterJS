@@ -8,6 +8,7 @@ if(typeof exports !== 'undefined') {
 
 AdapterJS.options = AdapterJS.options || {};
 
+AdapterJS.hasPlugin = false;
 // uncomment to get virtual webcams
 // AdapterJS.options.getAllCams = true;
 
@@ -350,7 +351,7 @@ AdapterJS.renderNotificationBar = function (text, buttonText, buttonLink, openNe
               function() { //Does nothing because not used here
               });
           } , 500);
-    });   
+    });
 
   }else {
     c.document.close();
@@ -951,17 +952,18 @@ if (navigator.mozGetUserMedia) {
     };
     window.navigator.getUserMedia = window.getUserMedia;
 
-    attachMediaStream = function (element, stream) {
-      if (!element || !element.parentNode) {
-        return;
-      }
+    attachMediaStream = function (element, stream, audio) {
+      // debugger;
+      // if (!element || !element.parentNode) {
+        // return;
+      // }
 
       var streamId
       if (stream === null) {
         streamId = '';
       }
       else {
-        stream.enableSoundTracks(true);
+        stream.enableSoundTracks(audio ? true : false);
         streamId = stream.id;
       }
 
@@ -1086,6 +1088,8 @@ if (navigator.mozGetUserMedia) {
 
     var downloadLink = AdapterJS.WebRTCPlugin.pluginInfo.downloadLink;
     if(downloadLink) { // if download link
+      AdapterJS.hasPlugin = true;
+
       var popupString;
       if (AdapterJS.WebRTCPlugin.pluginInfo.portalLink) { // is portal link
        popupString = 'This website requires you to install the ' +
@@ -1097,9 +1101,14 @@ if (navigator.mozGetUserMedia) {
        popupString = AdapterJS.TEXT.PLUGIN.REQUIRE_INSTALLATION;
       }
 
-      AdapterJS.renderNotificationBar(popupString, AdapterJS.TEXT.PLUGIN.BUTTON, downloadLink);
+      AdapterJS.popupString = popupString;
+      AdapterJS.downloadLink = downloadLink;
+
+
+      // AdapterJS.renderNotificationBar(popupString, AdapterJS.TEXT.PLUGIN.BUTTON, downloadLink);
     } else { // no download link, just print a generic explanation
-      AdapterJS.renderNotificationBar(AdapterJS.TEXT.PLUGIN.NOT_SUPPORTED);
+      console.log('device not supported');
+      // AdapterJS.renderNotificationBar(AdapterJS.TEXT.PLUGIN.NOT_SUPPORTED);
     }
   };
 
@@ -1110,5 +1119,4 @@ if (navigator.mozGetUserMedia) {
     AdapterJS.WebRTCPlugin.defineWebRTCInterface,
     AdapterJS.WebRTCPlugin.pluginNeededButNotInstalledCb);
 }
-
 
