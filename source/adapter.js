@@ -1,3 +1,6 @@
+//init vars
+var __TemWebRTCReady0, webrtcDetectedType, webrtcDetectedDCSupport, checkMediaDataChannelSettings, RTCSessionDescription, RTCIceCandidate, isIE, checkIceConnectionState, createIceServer, createIceServers, RTCPeerConnection, getUserMedia, attachMediaStream, reattachMediaStream, webrtcDetectedBrowser, webrtcDetectedVersion;
+
 // Adapter's interface.
 var AdapterJS = AdapterJS || {};
 
@@ -974,7 +977,7 @@ if (navigator.mozGetUserMedia) {
         iceServers, mandatory, optional);
     };
 
-    MediaStreamTrack = {};
+    var MediaStreamTrack = {};
     MediaStreamTrack.getSources = function (callback) {
       AdapterJS.WebRTCPlugin.callWhenPluginReady(function() {
         AdapterJS.WebRTCPlugin.plugin.GetSources(callback);
