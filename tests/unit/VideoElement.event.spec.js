@@ -51,7 +51,9 @@ describe('VideoElement | EventHandler', function() {
     });
 
     video = document.createElement('video');
-    video.autoplay = 'autoplay';
+    if (webrtcDetectedBrowser !== 'IE') {
+      video.autoplay = 'autoplay';
+    }
     document.body.appendChild(video);
 
   });
@@ -63,32 +65,32 @@ describe('VideoElement | EventHandler', function() {
 
   it('VideoElement.onplaying :: emit', function (done) {
     this.timeout(testItemTimeout);
-    video.id = 'id';
 
     video.onplaying = function(event) {
       done();
-    }
+    };
 
     video = attachMediaStream(video, stream);    
   });
 
   it('VideoElement.onplaying :: attributes', function (done) {
     this.timeout(testItemTimeout);
-    video.id = 'video';
+    var id = Math.random().toString(36).slice(2);
+    video.id = id;
 
     var now = new Date().getTime();
 
     video.onplaying = function(event) {
-      expect(event.target).not.to.be.undefined;
-      expect(event.currentTarget).not.to.be.undefined;
-      expect(event.srcElement).not.to.be.undefined;
-      expect(event.timeStamp).not.to.be.undefined;
+      assert.isDefined(event.target);
+      assert.isDefined(event.currentTarget);
+      assert.isDefined(event.srcElement);
+      assert.isDefined(event.timeStamp);
 
       expect(event.timeStamp).to.be.above(0);
       expect(event.timeStamp).to.be.within(now - timeStampMaxError, now + timeStampMaxError);
-      expect(event.target.id).to.equal('video');
-      expect(event.srcElement.id).to.equal('video');
-      expect(event.currentTarget.id).to.equal('video');
+      expect(event.target.id).to.equal(id);
+      expect(event.srcElement.id).to.equal(id);
+      expect(event.currentTarget.id).to.equal(id);
 
       done();
     };
@@ -103,39 +105,77 @@ describe('VideoElement | EventHandler', function() {
     var expectedOnplayCaught = 2;
 
     video.onplay = function() {
-      if(++onPlayCaught == expectedOnplayCaught) {
+      if(++onPlayCaught === expectedOnplayCaught) {
         done();
       }
       video.pause();
       video.play();
-    }
+    };
 
     video = attachMediaStream(video, stream);
   });
 
   it('VideoElement.onplay :: attributes', function(done) {
     this.timeout(testItemTimeout);
-    video.id = 'video';
+    var id = Math.random().toString(36).slice(2);
+    video.id = id;
 
     var now = new Date().getTime();
 
     video.onplay = function(event) {
-      expect(event.target).not.to.be.undefined;
-      expect(event.currentTarget).not.to.be.undefined;
-      expect(event.srcElement).not.to.be.undefined;
-      expect(event.timeStamp).not.to.be.undefined;
+      assert.isDefined(event.target);
+      assert.isDefined(event.currentTarget);
+      assert.isDefined(event.srcElement);
+      assert.isDefined(event.timeStamp);
 
       expect(event.timeStamp).to.be.above(0);
       expect(event.timeStamp).to.be.within(now - timeStampMaxError, now + timeStampMaxError);
-      expect(event.target.id).to.equal('video');
-      expect(event.srcElement.id).to.equal('video');
-      expect(event.currentTarget.id).to.equal('video');
+      expect(event.target.id).to.equal(id);
+      expect(event.srcElement.id).to.equal(id);
+      expect(event.currentTarget.id).to.equal(id);
 
       done();
     };
 
     video = attachMediaStream(video, stream);
 
+  });
+
+it('VideoElement.onloadedmetadata :: emit', function (done) {
+    this.timeout(testItemTimeout);
+
+    var now = new Date().getTime();
+
+    video.onloadedmetadata = function(event) {
+      done();
+    };
+
+    video = attachMediaStream(video, stream);
+  });
+
+  it('VideoElement.onloadedmetadata :: attributes', function (done) {
+    this.timeout(testItemTimeout);
+    var id = Math.random().toString(36).slice(2);
+    video.id = id;
+
+    var now = new Date().getTime();
+
+    video.onloadedmetadata = function(event) {
+      assert.isDefined(event.target);
+      assert.isDefined(event.currentTarget);
+      assert.isDefined(event.srcElement);
+      assert.isDefined(event.timeStamp);
+
+      expect(event.timeStamp).to.be.above(0);
+      expect(event.timeStamp).to.be.within(now - timeStampMaxError, now + timeStampMaxError);
+      expect(event.target.id).to.equal(id);
+      expect(event.srcElement.id).to.equal(id);
+      expect(event.currentTarget.id).to.equal(id);
+
+      done();
+    };
+
+    video = attachMediaStream(video, stream);
   });
 
 });

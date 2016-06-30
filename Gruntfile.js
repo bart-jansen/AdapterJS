@@ -8,6 +8,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
     grunt.loadNpmTasks('grunt-replace');
+    grunt.loadNpmTasks('grunt-include-replace');
     grunt.loadNpmTasks('grunt-karma');
 
     grunt.initConfig({
@@ -18,9 +19,14 @@ module.exports = function(grunt) {
 
       source: 'source',
 
+      googleAdapterPath: 'third_party/adapter/adapter.js',
+
       production: 'publish',
 
       bamboo: 'bamboo',
+
+      pluginInfoRoot: grunt.option('pluginInfoRoot') || '<%= source %>',
+      pluginInfoFile: grunt.option('pluginInfoFile') || 'pluginInfo.js',
 
       clean: {
         production: ['<%= production %>/'],
@@ -107,6 +113,49 @@ module.exports = function(grunt) {
           }]
         }
       },
+
+      includereplace: {
+        withGoogle: {
+          options: {
+            // Task-specific options go here. 
+            prefix: '@Goo@',
+            includesDir: '.',
+            processIncludeContents: function (includeContents, localVars, filePath) {
+              if (filePath.indexOf(grunt.config.get('googleAdapterPath')) !== -1) {
+                // Indent file and indent Google's exports
+                return includeContents
+                  // Comment export
+                  .replace(/if \(typeof module \!\=\= 'undefined'\) \{(.|\n)*\}\n/gm, function(content) {
+                  return '/* Orginal exports removed in favor of AdapterJS custom export.\n' + content + '*/\n';
+                  })
+                  // Indent (2 spaces so far, to be updated as AJS evolves)
+                  .replace(/.*\n/g, function(line) { return '  ' + line; });
+              } else { // not Google's AJS
+                return includeContents;
+              }
+            },
+          },
+          // Files to perform replacements and includes with 
+          src: [
+            '<%= production %>/*.js',
+            ],
+          // Destination directory to copy files to 
+          dest: './'
+        },
+        withPluginInfo: {
+          options: {
+            // Task-specific options go here. 
+            prefix: '@Tem@',
+            includesDir: '<%= pluginInfoRoot %>/',
+          },
+          // Files to perform replacements and includes with 
+          src: [
+            '<%= production %>/*.js',
+            ],
+          // Destination directory to copy files to 
+          dest: './'
+        },
+      },
       
       jshint: {
         build: {
@@ -123,7 +172,8 @@ module.exports = function(grunt) {
                 node: true
             }, grunt.file.readJSON('.jshintrc')),
             src: [
-                'tests/*_test.js'
+              'tests/*.js',
+              'tests/unit/*.js'
             ]
         },
         app: {
@@ -176,7 +226,7 @@ module.exports = function(grunt) {
             'FirefoxCustom',
             // 'Opera',
             // 'PhantomJS',
-            // 'IE'
+            'IE'
           ]
         }
       }
@@ -243,19 +293,47 @@ module.exports = function(grunt) {
         grunt.log.writeln('bamboo/vars file successfully created');
     });
 
-    grunt.registerTask('dev', [
-        'versionise',
-        'clean:production',
-        'concat',
-        'replace:production',
-        'uglify'
-    ]);
+    grunt.registerTask('CheckSubmodules', 'Checks that third_party/adapter is properly checked out', function() {
+      if(!grunt.file.exists(grunt.config.get('googleAdapterPath'))) {
+        grunt.fail.fatal('Couldn\'t find ' + grunt.config.get('googleAdapterPath') + '\n' +
+                      'Output would be incomplete. Did you remember to initialize submodules?\nPlease run: git submodule update --init');
+      }
+    });
+
+    grunt.registerTask('CheckPluginInfo', 'Checks for existing config file', function() {
+      var fullPath = grunt.config.get('pluginInfoRoot') + '/' + grunt.config.get('pluginInfoFile');
+      grunt.verbose.writeln('Checking that the plugin info file exists.');
+      grunt.verbose.writeln('Privided Path : ' + fullPath);
+      if (grunt.file.exists(fullPath)) {
+        grunt.log.oklns('Plugin info file found.');
+      } else {
+        grunt.fail.fatal('Plugin info file does not exist : ' + fullPath);
+      }
+    });
+
+    // NOTE(J-O) Prep for webrtc-adapter 0.2.10, will need to be compiled
+    grunt.registerTask('webrtc-adapter', 'Build the webrtc-adapter submodule', function() {
+      grunt.verbose.writeln('Spawning child process to compile webrtc-adapter subgrunt.');
+      var done = this.async();
+      var child = grunt.util.spawn({
+        grunt: true,
+        args: ['--gruntfile', './third_party/adapter/Gruntfile.js', 'build'],
+        opts: {stdio: 'inherit'},
+      }, function(error, result) {});
+      child.on('close', function (code) {
+        done(code === 0);
+      });
+    });
 
     grunt.registerTask('publish', [
+        'CheckSubmodules',
+        'CheckPluginInfo',
+        // 'webrtc-adapter',
         'versionise',
         'clean:production',
         'concat',
         'replace',
+        'includereplace',
         'uglify',
         'yuidoc'
     ]);
